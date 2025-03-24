@@ -81,3 +81,32 @@ class CameraResponse(CameraCreate):
     rtmp_url: str
     class Config:
         orm_mode = True
+
+class VeiculoCreate(BaseModel):
+    placa: str
+    modelo: str
+    ano: int
+    cor: str
+    km: int
+
+
+class VeiculoResponse(BaseModel):
+    id: int
+    placa: str
+    modelo: str
+    ano: int
+    cor: str
+    km: int
+
+    class Config:
+        orm_mode = True
+
+
+class Relatorio(Base):
+    __tablename__ = "relatorios"
+    id = Column(Integer, primary_key=True, index=True)
+    veiculo_id = Column(Integer, ForeignKey("veiculos.id"))
+    usuario_id = Column(Integer, ForeignKey("usuarios.id"))
+    data = Column(Date)
+    resultado = Column(String)  # Ex: "0 avarias", "3 avarias detectadas"
+    arquivo_pdf = Column(String)  # (opcional) caminho do arquivo gerado

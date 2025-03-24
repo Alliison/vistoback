@@ -2,6 +2,32 @@ from sqlalchemy import Column, Integer, String, Date, Time, ForeignKey, Text
 from .database import Base
 from sqlalchemy.orm import relationship
 
+# 🔹 Base de Usuário: Campos comuns para reaproveitamento
+class Veiculo(Base):
+    __tablename__ = "veiculos"
+
+    id = Column(Integer, primary_key=True, index=True)
+    usuario_id = Column(Integer, ForeignKey("usuarios.id"))
+    placa = Column(String, unique=True, index=True, nullable=False)
+    modelo = Column(String, nullable=False)
+    ano = Column(Integer, nullable=False)
+    cor = Column(String, nullable=True)
+    km = Column(Integer, nullable=True)
+
+    usuario = relationship("User", back_populates="veiculos")
+
+
+class Relatorio(Base):
+    __tablename__ = "relatorios"
+
+    id = Column(Integer, primary_key=True, index=True)
+    veiculo_id = Column(Integer, ForeignKey("veiculos.id"), nullable=False)
+    usuario_id = Column(Integer, ForeignKey("usuarios.id"), nullable=False)
+    data = Column(Date, nullable=False)
+    resultado = Column(String, nullable=False)
+    arquivo_pdf = Column(String, nullable=True)  # Caminho para o PDF, se houver
+
+
 class User(Base):
     __tablename__ = "users"
     __table_args__ = {"extend_existing": True}  # 🔹 Adicionando essa opção
