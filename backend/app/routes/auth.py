@@ -36,13 +36,22 @@ async def login(user_data: UserLogin, db: AsyncSession = Depends(get_db)):
     existing_user = result.scalars().first()
 
     if not existing_user:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Usuário não encontrado")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Usuário não encontrado"
+        )
 
     if not verify_password(user_data.senha, existing_user.senha):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Senha incorreta")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Senha incorreta"
+        )
 
     access_token = create_access_token(
-        data={"sub": existing_user.email}, 
+        data={
+            "sub": existing_user.email,
+            "name": existing_user.name  # <- Adicionando o nome aqui
+        },
         expires_delta=timedelta(minutes=30)
     )
 

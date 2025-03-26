@@ -53,7 +53,10 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
     )
     
     payload = decode_access_token(token)
-    if payload is None:
+    if payload is None or "sub" not in payload or "name" not in payload:
         raise credentials_exception
 
-    return payload["sub"]
+    return {
+        "email": payload["sub"],
+        "name": payload["name"]
+    }

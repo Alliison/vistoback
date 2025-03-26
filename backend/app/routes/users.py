@@ -9,5 +9,5 @@ router = APIRouter(prefix="/users", tags=["Users"])
 
 @router.get("/me")
 async def read_users_me(current_user: str = Depends(get_current_user)):
-    return {"user": current_user}
+    return current_user # {"user": current_user}
 

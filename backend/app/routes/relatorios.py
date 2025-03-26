@@ -4,14 +4,14 @@ from sqlalchemy.future import select
 from app.database import get_db
 from app.models import Relatorio
 from app.schemas import RelatorioCreate, RelatorioResponse
-from app.utils.auth import get_current_user
-from app.models.user import users
+from app.utils.security import get_current_user
+from app.models import User as Usuario
 from datetime import date
-from typing import Optional
+from typing import Optional, List
 
 router = APIRouter(prefix="/relatorios", tags=["Relatórios"])
 
-@router.get("/", response_model=list[RelatorioResponse])
+@router.get("/", response_model=List[RelatorioResponse])
 async def listar_relatorios(inspecao_id: Optional[int] = None, db: AsyncSession = Depends(get_db), usuario: Usuario = Depends(get_current_user)):
     if inspecao_id:
         result = await db.execute(

@@ -27,8 +27,8 @@ async def startup():
         await conn.run_sync(Base.metadata.create_all, checkfirst=True)  # 🔹 Adicionando checkfirst=True
 
 # Inclusão das rotas existentes
-app.include_router(auth.router, prefix="/api", tags=["auth"])
-app.include_router(users.router, prefix="/api", tags=["users"])
+app.include_router(auth.router, prefix="/api", tags=["Auth"])
+app.include_router(users.router, prefix="/api", tags=["Users"])
 app.include_router(agenda.router, prefix="/api", tags=["Agenda"])
 app.include_router(inspecoes.router, prefix="/api", tags=["Inspeções"])
 app.include_router(cameras.router, prefix="/api", tags=["Câmeras"])
