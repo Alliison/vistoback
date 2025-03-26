@@ -13,7 +13,7 @@ router = APIRouter(prefix="/auth", tags=["Auth"])
 async def register_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
     print(f"Recebendo JSON: {user.dict()}")  # 🔹 Log dos dados recebidos
 
-    stmt = select(User).where(User.email == user.email)
+    stmt = select(User).where(User.email == user_data.email)
     existing_user = await db.execute(stmt)
 
     if existing_user.scalar():
