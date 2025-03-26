@@ -28,10 +28,9 @@ class UserLogin(BaseModel):
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str
-    sub: str
     name: str
-    role: str 
-
+    email: str
+    role: str
 
 # 🔹 Schema para criação de um agendamento
 class AgendamentoCreate(BaseModel):
