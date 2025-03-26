@@ -47,17 +47,19 @@ async def login(user_data: UserLogin, db: AsyncSession = Depends(get_db)):
             detail="Senha incorreta"
         )
 
-    access_token = create_access_token(
+access_token = create_access_token(
     data={
         "sub": existing_user.email,
-        "name": existing_user.nome,  # ✅ Corrigido aqui
+        "name": existing_user.nome,
         "role": existing_user.role
     },
     expires_delta=timedelta(minutes=30)
-    )
+)
 
-    return {
-        "access_token": access_token,
-        "token_type": "bearer",
-        "role": existing_user.role  # 🔹 Adicionado para redirecionamento no frontend
-    }
+return {
+    "access_token": access_token,
+    "token_type": "bearer",
+    "name": existing_user.nome,     # 👈 ESSENCIAIS pro TokenResponse
+    "email": existing_user.email,   # 👈 idem
+    "role": existing_user.role
+}
