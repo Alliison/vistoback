@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from app.database import get_db
 from app.models import Relatorio
-from app.schemas.relatorio import RelatorioCreate, RelatorioResponse
+from app.schemas import RelatorioCreate, RelatorioResponse
 from app.utils.auth import get_current_user
 from app.models.user import users
 from datetime import date

@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from app.database import get_db
 from app.models import Veiculo
-from app.schemas.veiculo import VeiculoCreate, VeiculoUpdate, VeiculoResponse
+from app.schemas import VeiculoCreate, VeiculoUpdate, VeiculoResponse
 from app.utils.auth import get_current_user
 from app.models.user import users
 
