@@ -31,6 +31,11 @@ async def register_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
 
 @router.post("/login", response_model=TokenResponse)
 async def login(user_data: UserLogin, db: AsyncSession = Depends(get_db)):
+    # Logs
+    print("user_data:", user_data)
+    print("user_data.email:", user_data.email)
+    print("user_data dict:", user_data.dict())
+
     stmt = select(User).where(User.email == user_data.email)
     result = await db.execute(stmt)
     existing_user = result.scalars().first()
