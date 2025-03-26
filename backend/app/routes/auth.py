@@ -50,7 +50,7 @@ async def login(user_data: UserLogin, db: AsyncSession = Depends(get_db)):
     access_token = create_access_token(
     data={
         "sub": existing_user.email,
-        "name": existing_user.name,
+        "name": existing_user.nome,  # ✅ Corrigido aqui
         "role": existing_user.role
     },
     expires_delta=timedelta(minutes=30)
