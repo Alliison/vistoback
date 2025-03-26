@@ -11,9 +11,10 @@ router = APIRouter(prefix="/auth", tags=["Auth"])
 
 @router.post("/register")
 async def register_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
-    print(f"Recebendo JSON: {user.dict()}")  # 🔹 Log dos dados recebidos
-
-    stmt = select(User).where(User.email == user_data.email)
+    """//#
+        print(f"Recebendo JSON: {user.dict()}")  # 🔹 Log dos dados recebidos
+    #//"""
+    stmt = select(User).where(User.email == user.email)
     existing_user = await db.execute(stmt)
 
     if existing_user.scalar():
@@ -31,10 +32,12 @@ async def register_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
 
 @router.post("/login", response_model=TokenResponse)
 async def login(user_data: UserLogin, db: AsyncSession = Depends(get_db)):
-    # Logs
-    print("user_data:", user_data)
-    print("user_data.email:", user_data.email)
-    print("user_data dict:", user_data.dict())
+    """//#
+        # Logs
+        print("user_data:", user_data)
+        print("user_data.email:", user_data.email)
+        print("user_data dict:", user_data.dict())
+    #//"""
 
     stmt = select(User).where(User.email == user_data.email)
     result = await db.execute(stmt)
