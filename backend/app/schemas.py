@@ -59,6 +59,10 @@ class InspecaoResponse(InspecaoCreate):
     class Config:
         orm_mode = True
 
+class FinalizarInspecao(BaseModel):
+    concluido_por: EmailStr
+    notas: str
+
 # 🔹 Schema para criação de um pátio
 class PatioCreate(BaseModel):
     nome: str
@@ -72,13 +76,14 @@ class PatioResponse(PatioCreate):
 
 # 🔹 Schema para criação de uma câmera
 class CameraCreate(BaseModel):
-    tipo: str
-    patio_id: int
+    camera_type: str
 
 # 🔹 Schema para exibição de uma câmera
-class CameraResponse(CameraCreate):
+class CameraResponse(BaseModel):
     id: int
+    tipo: str
     rtmp_url: str
+
     class Config:
         orm_mode = True
 
@@ -88,7 +93,6 @@ class VeiculoCreate(BaseModel):
     ano: int
     cor: str
     km: int
-
 
 class VeiculoResponse(BaseModel):
     id: int
@@ -100,13 +104,3 @@ class VeiculoResponse(BaseModel):
 
     class Config:
         orm_mode = True
-
-
-class Relatorio(Base):
-    __tablename__ = "relatorios"
-    id = Column(Integer, primary_key=True, index=True)
-    veiculo_id = Column(Integer, ForeignKey("veiculos.id"))
-    usuario_id = Column(Integer, ForeignKey("usuarios.id"))
-    data = Column(Date)
-    resultado = Column(String)  # Ex: "0 avarias", "3 avarias detectadas"
-    arquivo_pdf = Column(String)  # (opcional) caminho do arquivo gerado

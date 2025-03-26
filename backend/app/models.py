@@ -15,6 +15,7 @@ class Veiculo(Base):
     km = Column(Integer, nullable=True)
 
     usuario = relationship("User", back_populates="veiculos")
+    relatorios = relationship("Relatorio", back_populates="veiculo", cascade="all, delete-orphan")
 
 
 class Relatorio(Base):
@@ -22,10 +23,16 @@ class Relatorio(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     veiculo_id = Column(Integer, ForeignKey("veiculos.id"), nullable=False)
-    usuario_id = Column(Integer, ForeignKey("usuarios.id"), nullable=False)
+    usuario_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    inspecao_id = Column(Integer, ForeignKey("inspecoes.id"), nullable=False)
     data = Column(Date, nullable=False)
     resultado = Column(String, nullable=False)
-    arquivo_pdf = Column(String, nullable=True)  # Caminho para o PDF, se houver
+    arquivo_pdf = Column(String, nullable=True)
+
+    veiculo = relationship("Veiculo", back_populates="relatorios")
+    usuario = relationship("User")
+    inspecao = relationship("Inspecao")
+
 
 
 class User(Base):
@@ -41,6 +48,8 @@ class User(Base):
 
     agendamentos = relationship("Agendamento", back_populates="usuario", cascade="all, delete-orphan")
     patios = relationship("Patio", back_populates="usuario", cascade="all, delete-orphan")
+    veiculos = relationship("Veiculo", back_populates="usuario", cascade="all, delete-orphan")
+
 
 class Agendamento(Base):
     __tablename__ = "agendamentos"
@@ -54,6 +63,7 @@ class Agendamento(Base):
     status = Column(String(20), default="Pendente")
 
     usuario = relationship("User", back_populates="agendamentos")
+
 
 class Inspecao(Base):
     __tablename__ = "inspecoes"
@@ -69,6 +79,7 @@ class Inspecao(Base):
 
     patio = relationship("Patio")
 
+
 class Patio(Base):
     __tablename__ = "patios"
     __table_args__ = {"extend_existing": True}  # 🔹 Garante que a tabela não será redefinida
@@ -79,6 +90,7 @@ class Patio(Base):
 
     usuario = relationship("User", back_populates="patios")
     cameras = relationship("Camera", back_populates="patio", cascade="all, delete-orphan")
+
 
 class Camera(Base):
     __tablename__ = "cameras"

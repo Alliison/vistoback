@@ -1,19 +1,19 @@
-from fastapi import APIRouter, HTTPException, Request, Depends
-import json
+from fastapi import APIRouter, HTTPException, Depends
 import requests
 from datetime import datetime
 from sqlalchemy.orm import Session
 from app.database import AsyncSessionLocal as SessionLocal
 from app.models import Camera, User, Patio
+from app.utils.security import get_current_user
 
-router = APIRouter()
+router = APIRouter(prefix="/cameras", tags=["Câmeras"])
 
-# Configurações
 MICRO_RTMP_URL = "http://vistotrack.com:9000/"
 MICRO_AI_URL = "http://vistotrack.com:10000/"
-MICRO_AI_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxMjMsInVzZXJuYW1lIjoiYWxpc29uIiwiZXhwIjoxNzQyNDk1MTUwfQ.SkKiqe8-5-5Gagp2ngn2jTEwjSW8DG7_qsfrG9pKuBI"  # Token de autenticação do Micro AI
+MICRO_AI_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxMjMsInVzZXJuYW1lIjoiYWxpc29uIiwiZXhwIjoxNzQyNDk1MTUwfQ.SkKiqe8-5-5Gagp2ngn2jTEwjSW8DG7_qsfrG9pKuBI"
 
-# Dependência para acessar o banco de dados
+# DB Session
+
 def get_db():
     db = SessionLocal()
     try:
@@ -21,78 +21,59 @@ def get_db():
     finally:
         db.close()
 
-# Função para salvar logs no banco de dados
-def save_log(event: str, message: str, db: Session):
-    log_entry = Camera(evento=event, mensagem=message, timestamp=datetime.utcnow())
-    db.add(log_entry)
-    db.commit()
+# Adiciona nova câmera com tipo e gera URL automaticamente
+@router.post("/")
+def adicionar_camera(camera_type: str, usuario: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    patio = db.query(Patio).filter(Patio.usuario_id == usuario.id).first()
+    if not patio:
+        raise HTTPException(status_code=404, detail="Pátio não encontrado para o usuário")
 
-# Adicionar uma nova câmera
-@router.post("/cameras/add")
-def add_camera(user_id: int, camera_type: str, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.id == user_id).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="Usuário não encontrado")
-    
-    patios = db.query(Patio).filter(Patio.user_id == user_id).all()
-    if not patios:
-        raise HTTPException(status_code=404, detail="Nenhum pátio encontrado para este usuário")
-    
-    patio_id = patios[0].id  # Assumindo que um usuário só gerencia um pátio para simplificação
-    payload = {"patio_id": patio_id, "camera_type": camera_type}
+    payload = {"patio_id": patio.id, "camera_type": camera_type}
     response = requests.post(f"{MICRO_RTMP_URL}/start", json=payload)
-    
+
     if response.status_code != 200:
-        save_log("error", f"Erro ao adicionar câmera: {response.text}", db)
-        return {"status": "error", "message": "Erro ao adicionar câmera."}
-    
+        raise HTTPException(status_code=500, detail="Erro ao gerar URL da câmera")
+
     data = response.json()
-    return {"status": "success", "camera_url": data["rtmp_url"]}
+    nova_camera = Camera(tipo=camera_type, rtmp_url=data["rtmp_url"], patio_id=patio.id)
+    db.add(nova_camera)
+    db.commit()
+    db.refresh(nova_camera)
+    return {"status": "success", "camera_url": nova_camera.rtmp_url}
 
-# Remover uma câmera
-@router.delete("/cameras/remove")
-def remove_camera(camera_id: str, db: Session = Depends(get_db)):
-    payload = {"camera_id": camera_id}
-    response_rtmp = requests.post(f"{MICRO_RTMP_URL}/stop", json=payload)
-    response_ai = requests.post(f"{MICRO_AI_URL}/stop_patio", json=payload)
-    
-    if response_rtmp.status_code != 200 or response_ai.status_code != 200:
-        save_log("error", "Erro ao remover câmera", db)
-        return {"status": "error", "message": "Erro ao remover câmera."}
-    
-    return {"status": "success", "message": "Câmera removida com sucesso."}
-
-# Listar transmissões ativas para um usuário
-@router.get("/cameras/listartransmissoes")
-def listar_transmissoes(user_id: int, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.id == user_id).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="Usuário não encontrado")
-    
-    patios = db.query(Patio).filter(Patio.user_id == user_id).all()
-    patio_ids = [p.id for p in patios]
-    
+# Lista as transmissões ativas vinculadas ao sistema
+@router.get("/ativas")
+def listar_cameras_ativas(db: Session = Depends(get_db)):
     response = requests.get(f"{MICRO_RTMP_URL}/streams")
     if response.status_code != 200:
-        return {"status": "error", "message": "Erro ao obter transmissões."}
-    
-    streams = [s for s in response.json()["streams"] if s["patio_id"] in patio_ids]
-    return {"status": "success", "streams": streams}
+        raise HTTPException(status_code=500, detail="Erro ao consultar o Micro RTMP")
+    return response.json()
 
-# Status de uma câmera específica
-@router.get("/cameras/statustransmissoes")
+# Retorna o status de uma transmissão específica
+@router.get("/{camera_id}/status")
 def status_transmissao(camera_id: str):
     response = requests.get(f"{MICRO_RTMP_URL}/rtmp/status", params={"camera_id": camera_id})
     if response.status_code != 200:
-        return {"status": "error", "message": "Erro ao obter status da câmera."}
-    
+        raise HTTPException(status_code=500, detail="Erro ao obter status da transmissão")
     return response.json()
 
-# Exibir stream de uma câmera
-@router.get("/cameras/transmissao")
-def visualizar_stream(user_id: int, camera_id: str):
+# Gera o link da transmissão
+@router.get("/transmissao")
+def visualizar_stream(camera_id: str):
     response = requests.get(f"{MICRO_RTMP_URL}/generate_stream_link", params={"camera_id": camera_id})
     if response.status_code != 200:
-        return {"status": "error", "message": "Erro ao obter link da câmera."}
-    
+        raise HTTPException(status_code=500, detail="Erro ao obter o link da transmissão")
     return response.json()
+
+# Lista câmeras ativas do usuário autenticado
+@router.get("/me")
+def listar_minhas_cameras(usuario: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    patios = db.query(Patio).filter(Patio.usuario_id == usuario.id).all()
+    patio_ids = [p.id for p in patios]
+
+    response = requests.get(f"{MICRO_RTMP_URL}/streams")
+    if response.status_code != 200:
+        raise HTTPException(status_code=500, detail="Erro ao obter transmissões")
+
+    streams = [s for s in response.json().get("streams", []) if s.get("patio_id") in patio_ids]
+    return {"status": "success", "streams": streams}
