@@ -7,7 +7,7 @@ class Veiculo(Base):
     __tablename__ = "veiculos"
 
     id = Column(Integer, primary_key=True, index=True)
-    usuario_id = Column(Integer, ForeignKey("usuarios.id"))
+    usuario_id = Column(Integer, ForeignKey("users.id"))
     placa = Column(String, unique=True, index=True, nullable=False)
     modelo = Column(String, nullable=False)
     ano = Column(Integer, nullable=False)
