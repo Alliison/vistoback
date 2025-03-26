@@ -5,7 +5,7 @@ from app.database import get_db
 from app.models import Relatorio
 from app.schemas.relatorio import RelatorioCreate, RelatorioResponse
 from app.utils.auth import get_current_user
-from app.models.user import Usuario
+from app.models.user import users
 from datetime import date
 from typing import Optional
 
