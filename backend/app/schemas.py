@@ -104,3 +104,18 @@ class VeiculoResponse(BaseModel):
 
     class Config:
         orm_mode = True
+
+# 🔹 Schema para criação de relatório
+class RelatorioCreate(BaseModel):
+    veiculo_id: int
+    inspecao_id: int
+    data: Optional[date] = None
+    resultado: str
+    arquivo_pdf: Optional[str] = None
+
+# 🔹 Schema para resposta de relatório
+class RelatorioResponse(RelatorioCreate):
+    id: int
+
+    class Config:
+        orm_mode = True

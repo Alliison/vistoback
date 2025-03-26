@@ -5,7 +5,7 @@ from app.database import get_db
 from app.models import Veiculo
 from app.schemas import VeiculoCreate, VeiculoResponse #, VeiculoUpdate
 from app.utils.security import get_current_user
-from app.models.user import users
+from app.models import User
 from typing import List
 
 router = APIRouter(prefix="/veiculos", tags=["Veículos"])
