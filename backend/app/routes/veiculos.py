@@ -4,12 +4,13 @@ from sqlalchemy.future import select
 from app.database import get_db
 from app.models import Veiculo
 from app.schemas import VeiculoCreate, VeiculoResponse #, VeiculoUpdate
-from app.utils.auth import get_current_user
+from app.utils.security import get_current_user
 from app.models.user import users
+from typing import List
 
 router = APIRouter(prefix="/veiculos", tags=["Veículos"])
 
-@router.get("/", response_model=list[VeiculoResponse])
+@router.get("/", response_model=List[VeiculoResponse])
 async def listar_veiculos(db: AsyncSession = Depends(get_db), usuario: Usuario = Depends(get_current_user)):
     result = await db.execute(select(Veiculo).where(Veiculo.usuario_id == usuario.id))
     return result.scalars().all()
